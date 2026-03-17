@@ -1,0 +1,105 @@
+.auth-wrapper {
+    background-color: #f6f8fa; /* Charcoal Dark */
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+}
+
+.auth-card {
+    background-color: #162221;
+    padding: 40px;
+    border-radius: 20px;
+    width: 380px;
+    border: 1px solid #21262d;
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.auth-logo {
+    font-size: 40px;
+    margin-bottom: 15px;
+}
+
+.auth-header h1 {
+    color: white;
+    margin: 10px 0;
+    font-size: 22px;
+}
+
+.auth-header p {
+    color: #8b949e;
+    font-size: 13px;
+    margin: 0;
+}
+
+.role-selection {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+.role-box {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    font-size: 10px;
+    cursor: pointer;
+    color: #8b949e;
+    text-align: center;
+    font-weight: bold;
+}
+
+.role-box.active {
+    border-color: #0d9488;
+    color: #0d9488;
+    background: rgba(13, 148, 136, 0.1);
+}
+
+/* التنسيق اللي كيخلي Nom و Prenom حدا بعضياتهم */
+.input-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 0px; 
+}
+
+.auth-form input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    background-color: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    color: white;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.auth-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #0d9488; /* Teal Color */
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.switch-text {
+    text-align: center;
+    color: #8b949e;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 20px;
+}
+
+.switch-text:hover {
+    color: #0d9488;
+}
