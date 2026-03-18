@@ -41,18 +41,24 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log('useAuth login attempt:', credentials);
       const response = await authAPI.login(credentials);
-      const { success, role, user_id, name } = response.data;
+      const { success, role, user_id, name, token } = response.data;
       
-      console.log('useAuth login response:', { success, role, user_id, name });
+      console.log('useAuth login response:', { success, role, user_id, name, token });
       
       if (success) {
+        // Store the token for API authentication
+        if (token) {
+          localStorage.setItem('token', token);
+          setToken(token);
+        }
+        
         localStorage.setItem('userRole', role);
         localStorage.setItem('userId', user_id);
         localStorage.setItem('userName', name);
         setUserRole(role);
         setUser({ role, user_id, name, id: user_id });
         
-        console.log('useAuth login - state updated:', { role, user_id, name, id: user_id });
+        console.log('useAuth login - state updated:', { role, user_id, name, token, id: user_id });
         
         return { success: true, role };
       }
@@ -81,6 +87,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    localStorage.removeItem('token');
     localStorage.removeItem('userRole');
     localStorage.removeItem('userId');
     localStorage.removeItem('userName');

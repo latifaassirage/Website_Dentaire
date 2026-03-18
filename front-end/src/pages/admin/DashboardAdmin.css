@@ -21,6 +21,7 @@
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 25px;
   margin-bottom: 40px;
+  max-width: 1200px;
 }
 
 .glass-card {

@@ -7,7 +7,7 @@ const Home = () => {
       <Navbar />
       
       {/* Hero Section */}
-      <section style={{ padding: '60px 8% 100px', display: 'flex', alignItems: 'center', gap: '50px' }}>
+      <section style={{ padding: '60px 5% 100px', display: 'flex', alignItems: 'center', gap: '50px', maxWidth: '1400px', margin: '0 auto' }}>
         <div style={{ flex: 1 }}>
           <span style={{ background: '#e0f7f4', color: '#00a896', padding: '8px 15px', borderRadius: '20px', fontSize: '14px', fontWeight: '700' }}>
             ✨ Cabinet Dentaire Moderne à Agadir
@@ -39,7 +39,7 @@ const Home = () => {
       </section>
 
       {/* Features Section */}
-      <section style={{ padding: '80px 8%', background: '#f8fafb' }}>
+      <section style={{ padding: '80px 5%', background: '#f8fafb', maxWidth: '1400px', margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: '60px' }}>
           <h2 style={{ fontSize: '36px', fontWeight: '800', color: '#2d3436', marginBottom: '15px' }}>
             Pourquoi choisir DentalFlow ?
@@ -49,7 +49,7 @@ const Home = () => {
           </p>
         </div>
         
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '40px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '40px', maxWidth: '1200px', margin: '0 auto' }}>
           <div className="glass-card" style={{ textAlign: 'center', padding: '40px 30px' }}>
             <div style={{ fontSize: '48px', marginBottom: '20px' }}>📅</div>
             <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '15px', color: '#2d3436' }}>
@@ -83,7 +83,7 @@ const Home = () => {
       </section>
 
       {/* CTA Section */}
-      <section style={{ padding: '80px 8%', textAlign: 'center' }}>
+      <section style={{ padding: '80px 5%', textAlign: 'center', maxWidth: '1400px', margin: '0 auto' }}>
         <div className="glass-card" style={{ background: 'linear-gradient(135deg, #00a896 0%, #00897b 100%)', color: 'white', maxWidth: '800px', margin: '0 auto' }}>
           <h2 style={{ fontSize: '32px', fontWeight: '800', marginBottom: '20px' }}>
             Prêt à prendre soin de votre sourire ?

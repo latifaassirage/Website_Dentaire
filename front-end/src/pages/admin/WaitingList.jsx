@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { waitingListAPI, appointmentsAPI } from '../../services/api';
+import './WaitingList.css';
 
 const WaitingList = () => {
   const [waitingList, setWaitingList] = useState([]);
@@ -32,6 +33,22 @@ const WaitingList = () => {
       setAvailableSlots(response.data);
     } catch (error) {
       console.error('Error fetching available slots:', error);
+    }
+  };
+
+  const handleSchedulePatient = async (patient) => {
+    try {
+      console.log('Scheduling patient:', patient);
+    } catch (error) {
+      console.error('Error scheduling patient:', error);
+    }
+  };
+
+  const handleContactPatient = async (patient) => {
+    try {
+      console.log('Contacting patient:', patient);
+    } catch (error) {
+      console.error('Error contacting patient:', error);
     }
   };
 
@@ -94,24 +111,66 @@ const WaitingList = () => {
 
   if (loading) {
     return (
-      <div className="content-body" style={{ textAlign: 'center', padding: '40px' }}>
-        Chargement de la liste d'attente...
+      <div className="waiting-list-view">
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <p>Chargement de la liste d'attente...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="content-body">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+    <div className="waiting-list-view">
+      <div className="waiting-header">
         <h2>Liste d'Attente Intelligente</h2>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <span style={{ padding: '8px 16px', background: '#fff4e6', borderRadius: '20px', fontSize: '12px', fontWeight: '600' }}>
+        <div className="waiting-stats">
+          <span className="stat-badge">
             {waitingList.length} patients en attente
           </span>
-          <span style={{ padding: '8px 16px', background: '#e3faf3', borderRadius: '20px', fontSize: '12px', fontWeight: '600' }}>
+          <span className="stat-badge" style={{ background: '#e3faf3', color: '#00a896' }}>
             {availableSlots.length} créneaux disponibles
           </span>
         </div>
+      </div>
+
+      <div className="waiting-grid">
+        {waitingList.map(patient => (
+          <div key={patient.id} className="waiting-card">
+            <div className={`waiting-priority priority-${patient.priority}`}>
+              {patient.priority}
+            </div>
+            
+            <div className="waiting-info">
+              <h4>{patient.patient?.name}</h4>
+              <p>📞 {patient.patient?.phone}</p>
+              <p>🦷 {patient.service_label}</p>
+              {patient.preferred_date && (
+                <p>📅 {new Date(patient.preferred_date).toLocaleDateString('fr-FR')}</p>
+              )}
+            </div>
+            
+            <div className="waiting-meta">
+              <span className="waiting-time">
+                En attente depuis {getTimeSince(patient.created_at)}
+              </span>
+              <div className="waiting-actions">
+                <button 
+                  onClick={() => handleSchedulePatient(patient)}
+                  className="btn-schedule"
+                >
+                  Planifier
+                </button>
+                <button 
+                  onClick={() => handleContactPatient(patient)}
+                  className="btn-contact"
+                >
+                  Contacter
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       <div className="glass-card">

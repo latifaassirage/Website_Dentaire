@@ -16,6 +16,16 @@ const DashboardAdmin = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
+        console.log('Début de fetchStats');
+        const token = localStorage.getItem('token');
+        console.log('Token trouvé dans DashboardAdmin:', token);
+        
+        // Vérifier aussi les autres données
+        const userRole = localStorage.getItem('userRole');
+        const user = localStorage.getItem('user');
+        console.log('UserRole trouvé:', userRole);
+        console.log('User trouvé:', user);
+        
         const data = await adminApi.getDashboardStats();
         setStats(data);
       } catch (error) {
@@ -24,7 +34,6 @@ const DashboardAdmin = () => {
         setLoading(false);
       }
     };
-
     fetchStats();
   }, []);
 

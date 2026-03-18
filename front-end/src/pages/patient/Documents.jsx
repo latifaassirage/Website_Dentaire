@@ -1,14 +1,64 @@
 import React, { useState, useEffect } from 'react';
+import { dashboardAPI } from '../../services/api';
+import { useAuth } from '../../hooks/useAuth';
 
 const Documents = () => {
-  const [documents, setDocuments] = useState([
-    { id: 1, type: 'ordonnance', date: '15/03/2026', doctor: 'Dr. Martin', description: 'Antibiotiques - Amoxicilline 500mg' },
-    { id: 2, type: 'devis', date: '10/03/2026', amount: '450 DH', description: 'Détartrage + Consultation' },
-    { id: 3, type: 'facture', date: '08/03/2026', amount: '450 DH', status: 'Payé', description: 'Détartrage' },
-    { id: 4, type: 'radiographie', date: '01/03/2026', description: 'Radio panoramique' }
-  ]);
-
+  const [documents, setDocuments] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        const response = await dashboardAPI.getPatientData();
+        const patientData = response.data;
+        
+        // Combiner les ordonnances, devis et factures
+        const allDocs = [];
+        
+        // Ajouter les rendez-vous passés comme "ordonnances"
+        if (patientData.history) {
+          patientData.history.forEach((apt, index) => {
+            allDocs.push({
+              id: `apt_${apt.id}`,
+              type: 'ordonnance',
+              date: new Date(apt.date_appointment).toLocaleDateString('fr-FR'),
+              doctor: 'Cabinet Dentaire',
+              description: `Consultation - ${apt.type_soin}`,
+              appointmentId: apt.id
+            });
+          });
+        }
+        
+        // Ajouter les factures
+        if (patientData.payments) {
+          patientData.payments.forEach((payment, index) => {
+            allDocs.push({
+              id: `inv_${payment.id}`,
+              type: payment.type === 'devis' ? 'devis' : 'facture',
+              date: new Date(payment.created_at).toLocaleDateString('fr-FR'),
+              amount: `${payment.amount} DH`,
+              status: payment.status === 'paid' ? 'Payé' : payment.status === 'pending' ? 'En attente' : payment.status,
+              description: payment.description || `Facture #${payment.id}`,
+              invoiceId: payment.id
+            });
+          });
+        }
+        
+        // Trier par date (plus récent en premier)
+        allDocs.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        setDocuments(allDocs);
+      } catch (error) {
+        console.error('Error fetching documents:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDocuments();
+  }, []);
 
   const filteredDocs = filter === 'all' ? documents : documents.filter(doc => doc.type === filter);
 
@@ -26,9 +76,27 @@ const Documents = () => {
     switch(status) {
       case 'Payé': return 'badge-success';
       case 'En attente': return 'badge-warning';
+      case 'overdue': return 'badge-danger';
       default: return '';
     }
   };
+
+  const handleDownload = (doc) => {
+    // Logique de téléchargement
+    console.log('Téléchargement du document:', doc);
+    alert(`Téléchargement du ${doc.type} #${doc.id} - Fonctionnalité à implémenter`);
+  };
+
+  if (loading) {
+    return (
+      <div className="content-body">
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <p>Chargement de vos documents...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="content-body">
@@ -36,9 +104,9 @@ const Documents = () => {
       
       <div className="glass-card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h3>Mes Documents</h3>
+          <h3>Mes Documents ({documents.length})</h3>
           <div style={{ display: 'flex', gap: '10px' }}>
-            {['all', 'ordonnance', 'devis', 'facture', 'radiographie'].map(type => (
+            {['all', 'ordonnance', 'devis', 'facture'].map(type => (
               <button
                 key={type}
                 onClick={() => setFilter(type)}
@@ -53,7 +121,7 @@ const Documents = () => {
                   fontWeight: '500'
                 }}
               >
-                {type === 'all' ? 'Tous' : type.charAt(0).toUpperCase() + type.slice(1)}
+                {type === 'all' ? `Tous (${documents.length})` : `${type.charAt(0).toUpperCase() + type.slice(1)} (${documents.filter(d => d.type === type).length})`}
               </button>
             ))}
           </div>
@@ -68,13 +136,14 @@ const Documents = () => {
               padding: '20px',
               background: '#f8f9fa',
               borderRadius: '12px',
-              border: '1px solid #e9ecef'
+              border: '1px solid #e9ecef',
+              transition: 'all 0.3s ease'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                 <div style={{ fontSize: '24px' }}>{getIcon(doc.type)}</div>
                 <div>
                   <div style={{ fontWeight: '600', color: '#1a1a1a' }}>
-                    {doc.type.charAt(0).toUpperCase() + doc.type.slice(1)}
+                    {doc.type.charAt(0).toUpperCase() + doc.type.slice(1)} #{doc.id.split('_')[1]}
                   </div>
                   <div style={{ fontSize: '14px', color: '#6c757d' }}>{doc.description}</div>
                   <div style={{ fontSize: '12px', color: '#6c757d', marginTop: '5px' }}>
@@ -89,8 +158,12 @@ const Documents = () => {
                 {doc.status && (
                   <span className={`badge ${getStatusColor(doc.status)}`}>{doc.status}</span>
                 )}
-                <button className="btn-dental" style={{ padding: '8px 16px', fontSize: '12px' }}>
-                  Télécharger
+                <button 
+                  className="btn-dental" 
+                  style={{ padding: '8px 16px', fontSize: '12px' }}
+                  onClick={() => handleDownload(doc)}
+                >
+                  📥 Télécharger
                 </button>
               </div>
             </div>
@@ -100,7 +173,7 @@ const Documents = () => {
         {filteredDocs.length === 0 && (
           <div style={{ textAlign: 'center', padding: '40px', color: '#6c757d' }}>
             <div style={{ fontSize: '48px', marginBottom: '20px' }}>📂</div>
-            <p>Aucun document trouvé</p>
+            <p>Aucun {filter !== 'all' ? filter : 'document'} trouvé</p>
           </div>
         )}
       </div>

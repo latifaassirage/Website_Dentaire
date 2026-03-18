@@ -23,6 +23,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'cors' => \App\Http\Middleware\Cors::class,
         ]);
+        
+        // Exclure les routes API de la vérification CSRF
+        $middleware->validateCsrfTokens(except: [
+            '/api/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

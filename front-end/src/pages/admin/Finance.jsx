@@ -11,6 +11,8 @@ const Finance = () => {
   useEffect(() => {
     const fetchFinancialData = async () => {
       try {
+        const token = localStorage.getItem('token');
+        console.log('Token trouvé (Finance):', token);
         const data = await adminApi.getFinancialData();
         setFinancialData(data);
       } catch (error) {
@@ -148,12 +150,15 @@ const Finance = () => {
                       </button>
                     </div>
                   ) : (
-                    <button 
-                      className="btn-edit" 
-                      onClick={() => handleEdit(invoice)}
-                    >
-                      ✏️ Modifier
-                    </button>
+                    <div className="edit-actions">
+                      <button 
+                        onClick={() => handleEdit(invoice.id)}
+                        className="btn-dental"
+                        style={{ padding: '8px 16px', fontSize: '12px' }}
+                      >
+                        ✏️
+                      </button>
+                    </div>
                   )}
                 </td>
               </tr>

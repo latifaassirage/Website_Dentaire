@@ -9,7 +9,9 @@ const AdminLayout = ({ children }) => (
             <header className="top-nav-search">
                 <input type="search" placeholder="Rechercher un patient..." />
             </header>
-            <div className="page-body">{children}</div>
+            <div className="page-body-container">
+                {children}
+            </div>
         </div>
     </div>
 );

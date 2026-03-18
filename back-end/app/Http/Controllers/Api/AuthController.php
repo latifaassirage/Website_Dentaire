@@ -88,11 +88,15 @@ class AuthController extends Controller {
                 ], 403);
             }
 
+            // Generate token for API authentication
+            $token = $user->createToken('api-token')->plainTextToken;
+
             return response()->json([
                 'success' => true,
                 'role' => $user->role,
                 'user_id' => $user->id,
                 'name' => $user->name,
+                'token' => $token,
                 'message' => 'Login successful'
             ]);
         }

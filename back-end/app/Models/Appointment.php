@@ -10,8 +10,12 @@ class Appointment extends Model
         'patient_id',
         'assigned_to',
         'service',
-        'date',
-        'time',
+        'date', // Champ original de la migration
+        'time', // Champ original de la migration
+        'date_heure', // Champ combiné date+time
+        'type_soin', // Pour compatibilité avec frontend
+        'date_appointment', // Pour compatibilité avec frontend
+        'time_appointment', // Pour compatibilité avec frontend
         'price',
         'status',
         'notes',
@@ -20,9 +24,12 @@ class Appointment extends Model
     ];
 
     protected $casts = [
-        'date' => 'date',
-        'time' => 'datetime:H:i',
-        'price' => 'decimal:2',
+        'date' => 'date', // Ajout du cast pour le champ date
+        'time' => 'string', // Ajout du cast pour le champ time
+        'date_heure' => 'datetime',
+        'date_appointment' => 'date',
+        'time_appointment' => 'string', // Changé de 'time' à 'string' pour éviter l'erreur de cast
+        'price' => 'decimal:8,2',
         'cancelled_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime'
@@ -38,12 +45,17 @@ class Appointment extends Model
         return $this->belongsTo(User::class, 'assigned_to');
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'patient_id');
+    }
+
     public function invoice()
     {
         return $this->hasOne(Invoice::class);
     }
 
-    public function getStatusLabelAttribute()
+    public function getDateAttribute()
     {
         return [
             'confirmed' => 'Confirmé',

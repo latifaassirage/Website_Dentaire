@@ -14,7 +14,8 @@ class Invoice extends Model
         'status',
         'due_date',
         'paid_at',
-        'notes'
+        'notes',
+        'payment_method'
     ];
 
     protected $casts = [
@@ -56,7 +57,7 @@ class Invoice extends Model
 
     public function getFormattedAmountAttribute()
     {
-        return number_format($this->amount, 2, ',', ' ') . ' DH';
+        return number_format((float)$this->amount, 2, ',', ' ') . ' DH';
     }
 
     public function isOverdue()

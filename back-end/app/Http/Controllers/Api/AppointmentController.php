@@ -12,16 +12,59 @@ class AppointmentController extends Controller
 {
     public function index(Request $request)
     {
-        $appointments = Appointment::with(['patient', 'assignedTo'])
-            ->when($request->date, function($query, $date) {
-                return $query->whereDate('date', $date);
-            })
-            ->when($request->status, function($query, $status) {
-                return $query->where('status', $status);
-            })
-            ->orderBy('date')
-            ->orderBy('time')
-            ->get();
+        $user = Auth::user();
+        
+        // If user is a patient, only show their appointments
+        if ($user->role === 'patient') {
+            $appointments = Appointment::with(['patient', 'assignedTo'])
+                ->where('patient_id', $user->id)
+                ->when($request->date, function($query, $date) {
+                    return $query->whereDate('date', $date);
+                })
+                ->when($request->status, function($query, $status) {
+                    return $query->where('status', $status);
+                })
+                ->orderBy('date')
+                ->orderBy('time')
+                ->get()
+                ->map(function($appointment) {
+                    return [
+                        'id' => $appointment->id,
+                        'date' => $appointment->date,
+                        'time' => $appointment->time,
+                        'service_label' => $appointment->service ?? 'Consultation',
+                        'status' => $appointment->status,
+                        'notes' => $appointment->notes,
+                        'patient_id' => $appointment->patient_id,
+                        'created_at' => $appointment->created_at
+                    ];
+                });
+        } else {
+            // For admin users, show all appointments
+            $appointments = Appointment::with(['patient', 'assignedTo'])
+                ->when($request->date, function($query, $date) {
+                    return $query->whereDate('date', $date);
+                })
+                ->when($request->status, function($query, $status) {
+                    return $query->where('status', $status);
+                })
+                ->orderBy('date')
+                ->orderBy('time')
+                ->get()
+                ->map(function($appointment) {
+                    return [
+                        'id' => $appointment->id,
+                        'date' => $appointment->date,
+                        'time' => $appointment->time,
+                        'service_label' => $appointment->service ?? 'Consultation',
+                        'status' => $appointment->status,
+                        'notes' => $appointment->notes,
+                        'patient_id' => $appointment->patient_id,
+                        'patient' => $appointment->patient,
+                        'created_at' => $appointment->created_at
+                    ];
+                });
+        }
 
         return response()->json($appointments);
     }
@@ -49,12 +92,19 @@ class AppointmentController extends Controller
         }
 
         try {
+            // Créer le datetime combiné
+            $dateTime = $request->date . ' ' . $request->time;
+            
             $appointment = Appointment::create([
                 'patient_id' => $request->patient_id,
                 'assigned_to' => Auth::id(),
                 'service' => $request->service,
+                'type_soin' => $request->service, // Compatibilité frontend
                 'date' => $request->date,
                 'time' => $request->time,
+                'date_appointment' => $request->date, // Compatibilité frontend
+                'time_appointment' => $request->time, // Compatibilité frontend
+                'date_heure' => $dateTime, // Champ combiné
                 'price' => $request->price,
                 'status' => 'confirmed',
                 'notes' => $request->notes
@@ -62,7 +112,11 @@ class AppointmentController extends Controller
 
             \Log::info('Appointment created successfully:', ['appointment_id' => $appointment->id]);
 
-            return response()->json($appointment, 201);
+            return response()->json([
+                'success' => true,
+                'appointment' => $appointment,
+                'message' => 'Rendez-vous créé avec succès'
+            ], 201);
         } catch (\Exception $e) {
             \Log::error('Appointment creation failed:', ['error' => $e->getMessage()]);
             return response()->json([

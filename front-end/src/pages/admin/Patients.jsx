@@ -20,6 +20,8 @@ const Patients = () => {
   useEffect(() => {
     const fetchPatients = async () => {
       try {
+        const token = localStorage.getItem('token');
+        console.log('Token trouvé:', token);
         const data = await adminApi.getPatients();
         setPatients(data);
       } catch (error) {
@@ -81,7 +83,7 @@ const Patients = () => {
   };
 
   const filteredPatients = patients.filter(patient =>
-    patient.name && patient.name.toLowerCase().includes(searchTerm.toLowerCase())
+    patient.name && patient.name.toLowerCase().includes(searchTerm?.toLowerCase() || '')
   );
 
   if (loading) {

@@ -12,7 +12,7 @@ const api = axios.create({
 
 // Add request interceptor to include auth token
 api.interceptors.request.use(
-  (config) => {
+  async (config) => {
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -28,14 +28,15 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('userRole');
-      window.location.href = '/login';
-    }
     return Promise.reject(error);
   }
 );
+
+// User API
+export const userAPI = {
+  getProfile: () => api.get('/user/profile'),
+  updateProfile: (data) => api.put('/user/profile', data)
+};
 
 // Auth API
 export const authAPI = {
@@ -90,6 +91,17 @@ export const invoicesAPI = {
   create: (data) => api.post('/invoices', data),
   update: (id, data) => api.put(`/invoices/${id}`, data),
   delete: (id) => api.delete(`/invoices/${id}`),
+};
+
+// Messages API
+export const messagesAPI = {
+  getAll: (params = {}) => api.get('/messages', { params }),
+  getById: (id) => api.get(`/messages/${id}`),
+  create: (message) => api.post('/messages', message),
+  markAsRead: (id) => api.put(`/messages/${id}/read`),
+  getUnreadCount: () => api.get('/messages/unread-count'),
+  getSystemMessages: () => api.get('/messages/system'),
+  sendAppointmentReminder: (data) => api.post('/messages/appointment-reminder', data)
 };
 
 export default api;

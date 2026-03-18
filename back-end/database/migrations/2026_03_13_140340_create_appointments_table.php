@@ -15,8 +15,8 @@ return new class extends Migration
             $table->foreignId('patient_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('assigned_to')->nullable()->constrained('users')->onDelete('set null');
             $table->enum('service', ['consultation', 'detartrage', 'orthodontie', 'implantologie', 'blanchiment', 'conservation', 'prothese', 'depistage', 'urgence']);
-            $table->date('date');
-            $table->time('time');
+            $table->date('date')->nullable(); // Ajout de nullable pour éviter l'erreur
+            $table->time('time')->nullable(); // Ajout de nullable pour éviter l'erreur
             $table->decimal('price', 8, 2)->nullable();
             $table->enum('status', ['confirmed', 'pending', 'cancelled', 'completed'])->default('pending');
             $table->text('notes')->nullable();
