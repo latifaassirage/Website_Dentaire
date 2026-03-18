@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { dashboardAPI } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
-import './PatientDashboard.css';
+import './History.css';
 
 const History = () => {
     const [history, setHistory] = useState([]);
@@ -23,13 +23,14 @@ const History = () => {
     }, []);
 
     const getStatusBadge = (status) => {
-        switch(status) {
-            case 'confirmed': return <span className="badge badge-success">Confirmé</span>;
-            case 'pending': return <span className="badge badge-warning">En attente</span>;
-            case 'cancelled': return <span className="badge badge-danger">Annulé</span>;
-            case 'completed': return <span className="badge badge-info">Terminé</span>;
-            default: return <span className="badge">{status}</span>;
-        }
+        const badges = {
+            confirmed: { text: 'Confirmé', class: 'badge-confirmed' },
+            pending: { text: 'En attente', class: 'badge-pending' },
+            cancelled: { text: 'Annulé', class: 'badge-cancelled' },
+            completed: { text: 'Terminé', class: 'badge-completed' }
+        };
+        const badge = badges[status] || badges.pending;
+        return <span className={badge.class}>{badge.text}</span>;
     };
 
     const getServiceIcon = (service) => {
@@ -49,8 +50,8 @@ const History = () => {
 
     if (loading) {
         return (
-            <div className="patient-container">
-                <div className="loading-container">
+            <div className="glass-container">
+                <div className="loading-spinner">
                     <div className="spinner"></div>
                     <p>Chargement de l'historique...</p>
                 </div>
@@ -59,22 +60,22 @@ const History = () => {
     }
 
     return (
-        <div className="patient-container">
-            <header className="patient-header">
+        <div className="glass-container">
+            <header className="page-header">
                 <h1>📜 Historique des rendez-vous</h1>
                 <p className="header-subtitle">Consultez tous vos rendez-vous passés</p>
             </header>
 
-            <div className="history-stats">
-                <div className="stat-card">
+            <div className="stats-grid">
+                <div className="glass-card stat-card">
                     <div className="stat-number">{history.length}</div>
                     <div className="stat-label">Total RDV</div>
                 </div>
-                <div className="stat-card">
+                <div className="glass-card stat-card">
                     <div className="stat-number">{history.filter(h => h.status === 'completed').length}</div>
                     <div className="stat-label">Terminés</div>
                 </div>
-                <div className="stat-card">
+                <div className="glass-card stat-card">
                     <div className="stat-number">{history.filter(h => h.status === 'cancelled').length}</div>
                     <div className="stat-label">Annulés</div>
                 </div>
@@ -82,14 +83,14 @@ const History = () => {
 
             <div className="history-list">
                 {history.length === 0 ? (
-                    <div className="no-data">
-                        <div className="no-data-icon">📅</div>
+                    <div className="empty-state">
+                        <div className="empty-icon">📅</div>
                         <h3>Aucun rendez-vous</h3>
                         <p>Vous n'avez pas encore d'historique de rendez-vous</p>
                     </div>
                 ) : (
                     history.map((item) => (
-                        <div key={item.id} className="history-item">
+                        <div key={item.id} className="glass-card history-item">
                             <div className="history-date">
                                 <div className="date-day">
                                     {new Date(item.date_appointment).getDate()}
@@ -126,12 +127,12 @@ const History = () => {
                                 )}
                             </div>
                             <div className="history-actions">
-                                <button className="btn-secondary">
+                                <button className="glass-button small secondary">
                                     📋 Voir détails
                                 </button>
                                 {item.status === 'completed' && (
-                                    <button className="btn-dental">
-                                    💳 Payer
+                                    <button className="glass-button small primary">
+                                        💳 Payer
                                     </button>
                                 )}
                             </div>

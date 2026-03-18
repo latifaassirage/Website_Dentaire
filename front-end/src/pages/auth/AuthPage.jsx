@@ -12,6 +12,9 @@ const AuthPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const { login } = useAuth();
 
@@ -59,9 +62,12 @@ const AuthPage = () => {
         e.preventDefault();
         
         if (password !== confirmPassword) {
-            alert("Les mots de passe ne correspondent pas");
+            setError("Les mots de passe ne correspondent pas");
             return;
         }
+
+        setLoading(true);
+        setError('');
 
         try {
             const response = await authAPI.register({
@@ -69,28 +75,52 @@ const AuthPage = () => {
                 phone,
                 email,
                 password,
+                password_confirmation: confirmPassword,
                 role: selectedRole
             });
 
             if (response.data.success) {
-                alert("Compte créé avec succès!");
-                setIsLogin(true);
-                setName('');
-                setPhone('');
-                setEmail('');
-                setPassword('');
-                setConfirmPassword('');
+                setSuccess("Compte créé avec succès!");
+                // Rediriger vers la page de connexion après 2 secondes
+                setTimeout(() => {
+                    setIsLogin(true);
+                    setName('');
+                    setPhone('');
+                    setEmail('');
+                    setPassword('');
+                    setConfirmPassword('');
+                }, 2000);
             } else {
-                alert(response.data.message || "Erreur d'inscription");
+                setError(response.data.message || "Erreur d'inscription");
             }
         } catch (error) {
+            console.error('Registration error:', error);
+            
             if (error.response?.status === 422) {
                 const errors = error.response.data.errors;
-                const errorMessages = Object.values(errors).flat().join('\n');
-                alert("Erreurs de validation:\n" + errorMessages);
+                const fieldErrors = error.response.data.field_errors || {};
+                
+                // Afficher le premier message d'erreur spécifique
+                const firstError = Object.values(errors)[0]?.[0] || "Erreur de validation";
+                setError(firstError);
+                
+                // Log détaillé pour le débogage
+                console.log('Validation errors:', errors);
+                console.log('Field errors:', fieldErrors);
+                
+                // Afficher les erreurs spécifiques par champ dans le formulaire
+                Object.keys(fieldErrors).forEach(field => {
+                    const fieldElement = document.querySelector(`[name="${field}"]`);
+                    if (fieldElement) {
+                        fieldElement.classList.add('error');
+                        fieldElement.title = fieldErrors[field].message;
+                    }
+                });
             } else {
-                alert("Erreur d'inscription : Veuillez réessayer");
+                setError("Erreur d'inscription : Veuillez réessayer");
             }
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -101,6 +131,19 @@ const AuthPage = () => {
                     <div className="auth-logo">🦷</div>
                     <h1>{isLogin ? 'Connexion' : 'Inscription'}</h1>
                 </div>
+
+                {/* Afficher les messages d'erreur et de succès */}
+                {error && (
+                    <div className="auth-message error">
+                        {error}
+                    </div>
+                )}
+                
+                {success && (
+                    <div className="auth-message success">
+                        {success}
+                    </div>
+                )}
 
                 {/* دابا هادو غيوليو يتضغطو (Clickable) */}
                 <div className="role-selection">
@@ -155,15 +198,19 @@ const AuthPage = () => {
                     {!isLogin && (
                         <input 
                             type="password" 
-                            placeholder="Confirmer mot de passe" 
+                            placeholder="Confirmer le mot de passe" 
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             required 
                         />
                     )}
 
-                    <button type="submit" className="auth-btn">
-                        {isLogin ? 'Login' : "S'inscrire"}
+                    <button 
+                        type="submit" 
+                        className="auth-button"
+                        disabled={loading}
+                    >
+                        {loading ? 'Chargement...' : (isLogin ? 'Se connecter' : 'S\'inscrire')}
                     </button>
                 </form>
             </div>

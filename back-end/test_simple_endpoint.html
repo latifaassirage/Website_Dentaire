@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Simple Endpoint</title>
+</head>
+<body>
+    <h1>Test Endpoint Simple</h1>
+    
+    <h2>Test 1: Serveur PHP Simple (localhost:8001)</h2>
+    <button onclick="testSimple()">Tester PHP Simple</button>
+    <div id="simpleResult"></div>
+    
+    <h2>Test 2: Serveur Laravel (localhost:8000)</h2>
+    <button onclick="testLaravel()">Tester Laravel</button>
+    <div id="laravelResult"></div>
+    
+    <h2>Test 3: Diagnostic Réseau</h2>
+    <button onclick="testNetwork()">Tester Réseau</button>
+    <div id="networkResult"></div>
+
+    <script>
+        async function testSimple() {
+            const resultDiv = document.getElementById('simpleResult');
+            resultDiv.innerHTML = 'Test en cours...';
+            
+            try {
+                const response = await fetch('http://localhost:8001', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        test: 'simple endpoint',
+                        time: new Date().toISOString()
+                    })
+                });
+                
+                const data = await response.json();
+                resultDiv.innerHTML = `
+                    <h3>✅ PHP Simple Status: ${response.status}</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h3>❌ PHP Simple Error</h3>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+        
+        async function testLaravel() {
+            const resultDiv = document.getElementById('laravelResult');
+            resultDiv.innerHTML = 'Test en cours...';
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: 'Test Diagnostic',
+                        email: 'diag' + Date.now() + '@example.com',
+                        phone: '0600000000',
+                        password: 'password123',
+                        password_confirmation: 'password123',
+                        role: 'patient'
+                    })
+                });
+                
+                const data = await response.json();
+                resultDiv.innerHTML = `
+                    <h3>${response.ok ? '✅' : '❌'} Laravel Status: ${response.status}</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h3>❌ Laravel Error</h3>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+        
+        async function testNetwork() {
+            const resultDiv = document.getElementById('networkResult');
+            resultDiv.innerHTML = 'Diagnostic réseau...';
+            
+            const tests = [];
+            
+            // Test 1: CORS preflight
+            try {
+                const response = await fetch('http://localhost:8000/api/csrf-token', {
+                    method: 'GET'
+                });
+                tests.push(`✅ CSRF Token: ${response.status}`);
+            } catch (e) {
+                tests.push(`❌ CSRF Token: ${e.message}`);
+            }
+            
+            // Test 2: Simple GET
+            try {
+                const response = await fetch('http://localhost:8001');
+                tests.push(`✅ Simple GET: ${response.status}`);
+            } catch (e) {
+                tests.push(`❌ Simple GET: ${e.message}`);
+            }
+            
+            // Test 3: Network info
+            tests.push(`User Agent: ${navigator.userAgent}`);
+            tests.push(`Origin: ${window.location.origin}`);
+            
+            resultDiv.innerHTML = `
+                <h3>🔍 Diagnostic Réseau</h3>
+                <ul>${tests.map(t => `<li>${t}</li>`).join('')}</ul>
+            `;
+        }
+    </script>
+</body>
+</html>

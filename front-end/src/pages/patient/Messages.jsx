@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { messagesAPI, dashboardAPI } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
-import './PatientDashboard.css';
+import './Messages.css';
 
 const Messages = () => {
     const [messages, setMessages] = useState([]);
@@ -106,19 +106,19 @@ const Messages = () => {
     };
 
     const getTypeIcon = (type) => {
-        switch(type) {
-            case 'system': return '🔔';
-            case 'appointment': return '📅';
-            case 'patient': return '👤';
-            case 'admin': return '�‍⚕️';
-            default: return '💬';
-        }
+        const icons = {
+            'system': '🔔',
+            'appointment': '📅',
+            'patient': '👤',
+            'admin': '👨‍⚕️'
+        };
+        return icons[type] || '💬';
     };
 
     if (loading) {
         return (
-            <div className="patient-container">
-                <div className="loading-container">
+            <div className="glass-container">
+                <div className="loading-spinner">
                     <div className="spinner"></div>
                     <p>Chargement des messages...</p>
                 </div>
@@ -127,21 +127,21 @@ const Messages = () => {
     }
 
     return (
-        <div className="patient-container">
-            <header className="patient-header">
+        <div className="glass-container">
+            <header className="page-header">
                 <h1>💬 Messages</h1>
                 <p className="header-subtitle">
                     Communication avec le cabinet dentaire
                     {unreadCount > 0 && (
-                        <span className="unread-count">{unreadCount} non lu(s)</span>
+                        <span className="unread-badge">{unreadCount} non lu(s)</span>
                     )}
                 </p>
             </header>
 
             <div className="messages-container">
-                <div className="message-composer">
+                <div className="glass-card message-composer">
                     <div className="composer-header">
-                        <h3>Nouveau message</h3>
+                        <h3>✉️ Nouveau message</h3>
                     </div>
                     <div className="composer-form">
                         <textarea
@@ -149,10 +149,11 @@ const Messages = () => {
                             onChange={(e) => setNewMessage(e.target.value)}
                             placeholder="Écrivez votre message ici..."
                             className="message-textarea"
+                            rows={4}
                         />
                         <div className="composer-actions">
                             <button 
-                                className="btn-dental" 
+                                className="glass-button primary"
                                 onClick={handleSendMessage}
                                 disabled={!newMessage.trim()}
                             >
@@ -164,8 +165,8 @@ const Messages = () => {
 
                 <div className="messages-list">
                     {messages.length === 0 ? (
-                        <div className="no-data">
-                            <div className="no-data-icon">💬</div>
+                        <div className="empty-state">
+                            <div className="empty-icon">💬</div>
                             <h3>Aucun message</h3>
                             <p>Communiquez avec votre cabinet dentaire</p>
                         </div>
@@ -173,7 +174,7 @@ const Messages = () => {
                         messages.map((message) => (
                             <div 
                                 key={message.id} 
-                                className={`message-item ${!message.read ? 'unread' : ''}`}
+                                className={`glass-card message-item ${!message.read ? 'unread' : ''}`}
                                 onClick={() => !message.read && markAsRead(message.id)}
                             >
                                 <div className="message-header">
@@ -202,11 +203,11 @@ const Messages = () => {
                                     <p>{message.content}</p>
                                 </div>
                                 <div className="message-actions">
-                                    <button className="btn-reply">
+                                    <button className="glass-button small secondary">
                                         💬 Répondre
                                     </button>
                                     {message.type === 'appointment' && (
-                                        <button className="btn-dental">
+                                        <button className="glass-button small primary">
                                             📅 Voir RDV
                                         </button>
                                     )}

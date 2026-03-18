@@ -44,7 +44,10 @@ const Register = () => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(formData)
+          body: JSON.stringify({
+            ...formData,
+            password_confirmation: formData.confirmPassword
+          })
         });
 
         const data = await response.json();

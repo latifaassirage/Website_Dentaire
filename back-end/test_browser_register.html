@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Registration API</title>
+</head>
+<body>
+    <h1>Test d'Inscription Patient</h1>
+    <button onclick="testRegister()">Tester l'inscription</button>
+    <div id="result"></div>
+
+    <script>
+        async function testRegister() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Test en cours...';
+            
+            try {
+                const testData = {
+                    name: 'Test Browser',
+                    email: 'browser' + Date.now() + '@example.com',
+                    phone: '0600000000',
+                    password: 'password123',
+                    password_confirmation: 'password123',
+                    role: 'patient'
+                };
+                
+                console.log('Sending data:', testData);
+                
+                const response = await fetch('http://localhost:8000/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', [...response.headers.entries()]);
+                
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <h3>✅ Succès!</h3>
+                        <p>Status: ${response.status}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <h3>❌ Erreur!</h3>
+                        <p>Status: ${response.status}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+                
+            } catch (error) {
+                console.error('Fetch error:', error);
+                resultDiv.innerHTML = `
+                    <h3>❌ Erreur Fetch!</h3>
+                    <p>${error.message}</p>
+                    <details>
+                        <summary>Détails</summary>
+                        <pre>${error.stack}</pre>
+                    </details>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { dashboardAPI } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
+import './Documents.css';
 
 const Documents = () => {
   const [documents, setDocuments] = useState([]);
@@ -63,22 +64,23 @@ const Documents = () => {
   const filteredDocs = filter === 'all' ? documents : documents.filter(doc => doc.type === filter);
 
   const getIcon = (type) => {
-    switch(type) {
-      case 'ordonnance': return '📋';
-      case 'devis': return '💰';
-      case 'facture': return '🧾';
-      case 'radiographie': return '🦷';
-      default: return '📄';
-    }
+    const icons = {
+      'ordonnance': '📋',
+      'devis': '💰',
+      'facture': '🧾',
+      'radiographie': '🦷'
+    };
+    return icons[type] || '📄';
   };
 
-  const getStatusColor = (status) => {
-    switch(status) {
-      case 'Payé': return 'badge-success';
-      case 'En attente': return 'badge-warning';
-      case 'overdue': return 'badge-danger';
-      default: return '';
-    }
+  const getStatusBadge = (status) => {
+    const badges = {
+      'Payé': { text: 'Payé', class: 'badge-paid' },
+      'En attente': { text: 'En attente', class: 'badge-pending' },
+      'overdue': { text: 'En retard', class: 'badge-overdue' }
+    };
+    const badge = badges[status];
+    return badge ? <span className={badge.class}>{badge.text}</span> : null;
   };
 
   const handleDownload = (doc) => {
@@ -89,8 +91,8 @@ const Documents = () => {
 
   if (loading) {
     return (
-      <div className="content-body">
-        <div className="loading-container">
+      <div className="glass-container">
+        <div className="loading-spinner">
           <div className="spinner"></div>
           <p>Chargement de vos documents...</p>
         </div>
@@ -99,27 +101,21 @@ const Documents = () => {
   }
 
   return (
-    <div className="content-body">
-      <h2>Coffre-fort Documents</h2>
-      
+    <div className="glass-container">
+      <header className="page-header">
+        <h1>📂 Coffre-fort Documents</h1>
+        <p className="header-subtitle">Consultez et téléchargez tous vos documents médicaux</p>
+      </header>
+
       <div className="glass-card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <div className="documents-header">
           <h3>Mes Documents ({documents.length})</h3>
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div className="filter-buttons">
             {['all', 'ordonnance', 'devis', 'facture'].map(type => (
               <button
                 key={type}
                 onClick={() => setFilter(type)}
-                style={{
-                  padding: '8px 16px',
-                  border: '1px solid #e0e0e0',
-                  background: filter === type ? '#00a896' : '#fff',
-                  color: filter === type ? 'white' : '#6c757d',
-                  borderRadius: '20px',
-                  cursor: 'pointer',
-                  fontSize: '12px',
-                  fontWeight: '500'
-                }}
+                className={`filter-btn ${filter === type ? 'active' : ''}`}
               >
                 {type === 'all' ? `Tous (${documents.length})` : `${type.charAt(0).toUpperCase() + type.slice(1)} (${documents.filter(d => d.type === type).length})`}
               </button>
@@ -127,40 +123,27 @@ const Documents = () => {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gap: '15px' }}>
+        <div className="documents-list">
           {filteredDocs.map(doc => (
-            <div key={doc.id} style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center',
-              padding: '20px',
-              background: '#f8f9fa',
-              borderRadius: '12px',
-              border: '1px solid #e9ecef',
-              transition: 'all 0.3s ease'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                <div style={{ fontSize: '24px' }}>{getIcon(doc.type)}</div>
-                <div>
-                  <div style={{ fontWeight: '600', color: '#1a1a1a' }}>
-                    {doc.type.charAt(0).toUpperCase() + doc.type.slice(1)} #{doc.id.split('_')[1]}
-                  </div>
-                  <div style={{ fontSize: '14px', color: '#6c757d' }}>{doc.description}</div>
-                  <div style={{ fontSize: '12px', color: '#6c757d', marginTop: '5px' }}>
-                    {doc.date} {doc.doctor && `• ${doc.doctor}`}
+            <div key={doc.id} className="glass-card document-item">
+              <div className="document-info">
+                <div className="document-icon">{getIcon(doc.type)}</div>
+                <div className="document-details">
+                  <h4>{doc.type.charAt(0).toUpperCase() + doc.type.slice(1)} #{doc.id.split('_')[1]}</h4>
+                  <p className="document-description">{doc.description}</p>
+                  <div className="document-meta">
+                    <span className="document-date">📅 {doc.date}</span>
+                    {doc.doctor && <span className="document-doctor">👨‍⚕️ {doc.doctor}</span>}
                   </div>
                 </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div className="document-actions">
                 {doc.amount && (
-                  <span style={{ fontWeight: '600', color: '#00a896' }}>{doc.amount}</span>
+                  <span className="document-amount">{doc.amount}</span>
                 )}
-                {doc.status && (
-                  <span className={`badge ${getStatusColor(doc.status)}`}>{doc.status}</span>
-                )}
+                {doc.status && getStatusBadge(doc.status)}
                 <button 
-                  className="btn-dental" 
-                  style={{ padding: '8px 16px', fontSize: '12px' }}
+                  className="glass-button primary"
                   onClick={() => handleDownload(doc)}
                 >
                   📥 Télécharger
@@ -171,30 +154,31 @@ const Documents = () => {
         </div>
 
         {filteredDocs.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '40px', color: '#6c757d' }}>
-            <div style={{ fontSize: '48px', marginBottom: '20px' }}>📂</div>
-            <p>Aucun {filter !== 'all' ? filter : 'document'} trouvé</p>
+          <div className="empty-state">
+            <div className="empty-icon">📂</div>
+            <h3>Aucun {filter !== 'all' ? filter : 'document'} trouvé</h3>
+            <p>Vos documents apparaîtront ici dès qu'ils seront disponibles</p>
           </div>
         )}
       </div>
 
-      <div className="glass-card" style={{ marginTop: '20px' }}>
-        <h3>Sécurité et Confidentialité</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '32px', marginBottom: '10px' }}>🔒</div>
+      <div className="glass-card security-features">
+        <h3>🔒 Sécurité et Confidentialité</h3>
+        <div className="security-grid">
+          <div className="security-item">
+            <div className="security-icon">�</div>
             <h4>Chiffrement</h4>
-            <p style={{ fontSize: '14px', color: '#6c757d' }}>Vos documents sont chiffrés et protégés</p>
+            <p>Vos documents sont chiffrés et protégés</p>
           </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '32px', marginBottom: '10px' }}>🕐</div>
+          <div className="security-item">
+            <div className="security-icon">🕐</div>
             <h4>Accès permanent</h4>
-            <p style={{ fontSize: '14px', color: '#6c757d' }}>Consultez vos documents 24h/24</p>
+            <p>Consultez vos documents 24h/24</p>
           </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '32px', marginBottom: '10px' }}>📱</div>
+          <div className="security-item">
+            <div className="security-icon">📱</div>
             <h4>Multi-support</h4>
-            <p style={{ fontSize: '14px', color: '#6c757d' }}>Accès depuis mobile et ordinateur</p>
+            <p>Accès depuis mobile et ordinateur</p>
           </div>
         </div>
       </div>

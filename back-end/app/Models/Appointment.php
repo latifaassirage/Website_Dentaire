@@ -24,12 +24,12 @@ class Appointment extends Model
     ];
 
     protected $casts = [
-        'date' => 'date', // Ajout du cast pour le champ date
-        'time' => 'string', // Ajout du cast pour le champ time
+        'date' => 'date',
+        'time' => 'string',
         'date_heure' => 'datetime',
         'date_appointment' => 'date',
-        'time_appointment' => 'string', // Changé de 'time' à 'string' pour éviter l'erreur de cast
         'price' => 'decimal:8,2',
+        'status' => 'string',
         'cancelled_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime'
@@ -57,6 +57,11 @@ class Appointment extends Model
 
     public function getDateAttribute()
     {
+        return $this->attributes['date'] ?? null;
+    }
+
+    public function getStatusLabelAttribute()
+    {
         return [
             'confirmed' => 'Confirmé',
             'pending' => 'En attente',
@@ -82,13 +87,32 @@ class Appointment extends Model
 
     public function getFormattedDateTimeAttribute()
     {
-        return $this->date->format('d/m/Y') . ' à ' . $this->time->format('H:i');
+        try {
+            $date = $this->date;
+            $time = $this->time;
+            
+            if ($date instanceof \Carbon\Carbon) {
+                $formattedDate = $date->format('d/m/Y');
+            } elseif (is_string($date)) {
+                $formattedDate = \Carbon\Carbon::parse($date)->format('d/m/Y');
+            } else {
+                $formattedDate = 'N/A';
+            }
+            
+            return $formattedDate . ' à ' . ($time ?? 'N/A');
+        } catch (\Exception $e) {
+            return 'Date invalide';
+        }
     }
 
     public function canBeCancelled()
     {
-        return $this->status !== 'cancelled' && 
-               $this->date > now()->addDay();
+        try {
+            return $this->status !== 'cancelled' && 
+                   $this->date > now()->addDay();
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 
     public function scopeForDate($query, $date)
@@ -105,7 +129,6 @@ class Appointment extends Model
     {
         return $query->where('date', '>=', now())
                    ->where('status', '!=', 'cancelled')
-                   ->orderBy('date')
-                   ->orderBy('time');
+                   ->orderByRaw('DATE(date) ASC, TIME(time) ASC');
     }
 }

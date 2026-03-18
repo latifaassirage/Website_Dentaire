@@ -2,32 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { appointmentsAPI, dashboardAPI } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
+import './PatientDashboard.css';
 
 const PatientDashboard = () => {
-    const [nextAppointment, setNextAppointment] = useState(null);
-    const [upcomingAppointments, setUpcomingAppointments] = useState([]);
-    const [userInfo, setUserInfo] = useState({});
+    const [patientData, setPatientData] = useState(null);
     const [loading, setLoading] = useState(true);
     const { user } = useAuth();
 
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                const [appointmentsResponse, statsResponse] = await Promise.all([
-                    appointmentsAPI.getAll(),
-                    dashboardAPI.getPatientData()
-                ]);
-
-                const appointments = appointmentsResponse.data;
-                const stats = statsResponse.data;
-
-                // Separate upcoming appointments
-                const now = new Date();
-                const upcoming = appointments.filter(apt => new Date(apt.date) >= now);
-
-                setNextAppointment(upcoming[0] || null);
-                setUpcomingAppointments(upcoming.slice(0, 3));
-                setUserInfo(stats.info || {});
+                const response = await dashboardAPI.getPatientData();
+                const data = response.data;
+                
+                setPatientData(data);
+                console.log('Patient data:', data);
             } catch (error) {
                 console.error('Error fetching dashboard data:', error);
             } finally {
@@ -36,6 +25,20 @@ const PatientDashboard = () => {
         };
         fetchDashboardData();
     }, []);
+
+    // Extraire le prochain rendez-vous
+    const nextAppointment = patientData?.history?.find(apt => {
+        const aptDate = new Date(apt.date_appointment || apt.date);
+        return aptDate >= new Date() && apt.status !== 'cancelled' && apt.status !== 'completed';
+    });
+
+    // Extraire les prochains rendez-vous (limité à 3)
+    const upcomingAppointments = patientData?.history?.filter(apt => {
+        const aptDate = new Date(apt.date_appointment || apt.date);
+        return aptDate >= new Date() && apt.status !== 'cancelled' && apt.status !== 'completed';
+    }).slice(0, 3) || [];
+
+    const stats = patientData?.stats || {};
 
     if (loading) {
         return (
@@ -52,7 +55,7 @@ const PatientDashboard = () => {
             <header className="dashboard-header">
                 <div className="header-content">
                     <div className="welcome-section">
-                        <h1>Bonjour, {user?.name || userInfo.name || 'Patient'}</h1>
+                        <h1>Bonjour, {patientData?.info?.name || user?.name || 'Patient'}</h1>
                         <p>Bienvenue dans votre espace personnel</p>
                     </div>
                     <Link to="/patient/booking" className="primary-btn">
@@ -70,18 +73,22 @@ const PatientDashboard = () => {
                         <div className="appointment-card">
                             <div className="card-header">
                                 <h2>Prochain rendez-vous</h2>
-                                <span className="appointment-status confirmed">Confirmé</span>
+                                <span className={`appointment-status ${nextAppointment.status}`}>
+                                    {nextAppointment.status === 'confirmed' ? 'Confirmé' : 
+                                     nextAppointment.status === 'pending' ? 'En attente' :
+                                     nextAppointment.status === 'completed' ? 'Terminé' : 'Annulé'}
+                                </span>
                             </div>
                             <div className="appointment-content">
                                 <div className="appointment-info">
                                     <div className="info-item">
                                         <span className="info-label">Service</span>
-                                        <span className="info-value">{nextAppointment.service_label}</span>
+                                        <span className="info-value">{nextAppointment.type_soin || nextAppointment.service || 'Consultation'}</span>
                                     </div>
                                     <div className="info-item">
                                         <span className="info-label">Date</span>
                                         <span className="info-value">
-                                            {new Date(nextAppointment.date).toLocaleDateString('fr-FR', {
+                                            {new Date(nextAppointment.date_appointment || nextAppointment.date).toLocaleDateString('fr-FR', {
                                                 weekday: 'long',
                                                 year: 'numeric',
                                                 month: 'long',
@@ -91,11 +98,11 @@ const PatientDashboard = () => {
                                     </div>
                                     <div className="info-item">
                                         <span className="info-label">Heure</span>
-                                        <span className="info-value">{nextAppointment.time}</span>
+                                        <span className="info-value">{nextAppointment.time_appointment || nextAppointment.time || 'N/A'}</span>
                                     </div>
                                 </div>
                                 <div className="appointment-actions">
-                                    <button className="secondary-btn">Modifier</button>
+                                    <Link to={`/patient/booking/${nextAppointment.id}`} className="secondary-btn">Modifier</Link>
                                     <button className="danger-btn">Annuler</button>
                                 </div>
                             </div>
@@ -112,6 +119,40 @@ const PatientDashboard = () => {
                             </div>
                         </div>
                     )}
+                </section>
+
+                {/* Stats Section */}
+                <section className="stats-section">
+                    <div className="stats-grid">
+                        <div className="stat-card">
+                            <div className="stat-icon">📅</div>
+                            <div className="stat-content">
+                                <h3>{stats.total_appointments || 0}</h3>
+                                <p>Total rendez-vous</p>
+                            </div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-icon">✅</div>
+                            <div className="stat-content">
+                                <h3>{stats.completed_appointments || 0}</h3>
+                                <p>Terminés</p>
+                            </div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-icon">💳</div>
+                            <div className="stat-content">
+                                <h3>{(stats.paid_amount || 0)} DH</h3>
+                                <p>Dépensés</p>
+                            </div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-icon">📋</div>
+                            <div className="stat-content">
+                                <h3>{stats.pending_amount || 0} DH</h3>
+                                <p>En attente</p>
+                            </div>
+                        </div>
+                    </div>
                 </section>
 
                 {/* Quick Actions Grid */}
@@ -157,18 +198,18 @@ const PatientDashboard = () => {
                         <h2>Prochains rendez-vous</h2>
                         <div className="appointments-list">
                             {upcomingAppointments.slice(1).map((appointment, index) => (
-                                <div key={index} className="appointment-item">
+                                <div key={appointment.id} className="appointment-item">
                                     <div className="appointment-date">
                                         <span className="date-day">
-                                            {new Date(appointment.date).getDate()}
+                                            {new Date(appointment.date_appointment || appointment.date).getDate()}
                                         </span>
                                         <span className="date-month">
-                                            {new Date(appointment.date).toLocaleDateString('fr-FR', { month: 'short' })}
+                                            {new Date(appointment.date_appointment || appointment.date).toLocaleDateString('fr-FR', { month: 'short' })}
                                         </span>
                                     </div>
                                     <div className="appointment-details">
-                                        <h4>{appointment.service_label}</h4>
-                                        <p>{appointment.time}</p>
+                                        <h4>{appointment.type_soin || appointment.service || 'Consultation'}</h4>
+                                        <p>{appointment.time_appointment || appointment.time || 'N/A'}</p>
                                     </div>
                                 </div>
                             ))}

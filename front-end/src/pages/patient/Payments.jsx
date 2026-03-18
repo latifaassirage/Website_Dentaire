@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { dashboardAPI } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
-import './PatientDashboard.css';
+import './Payments.css';
 
 const Payments = () => {
     const [payments, setPayments] = useState([]);
@@ -23,21 +23,22 @@ const Payments = () => {
     }, []);
 
     const getStatusBadge = (status) => {
-        switch(status) {
-            case 'paid': return <span className="badge badge-success">Payé</span>;
-            case 'pending': return <span className="badge badge-warning">En attente</span>;
-            case 'overdue': return <span className="badge badge-danger">En retard</span>;
-            case 'cancelled': return <span className="badge badge-secondary">Annulé</span>;
-            default: return <span className="badge">{status}</span>;
-        }
+        const badges = {
+            'paid': { text: 'Payé', class: 'badge-paid' },
+            'pending': { text: 'En attente', class: 'badge-pending' },
+            'overdue': { text: 'En retard', class: 'badge-overdue' },
+            'cancelled': { text: 'Annulé', class: 'badge-cancelled' }
+        };
+        const badge = badges[status] || badges.pending;
+        return <span className={badge.class}>{badge.text}</span>;
     };
 
     const getTypeLabel = (type) => {
-        switch(type) {
-            case 'devis': return 'Devis';
-            case 'facture': return 'Facture';
-            default: return type;
-        }
+        const labels = {
+            'devis': 'Devis',
+            'facture': 'Facture'
+        };
+        return labels[type] || type;
     };
 
     const getTotalPaid = () => {
@@ -48,10 +49,22 @@ const Payments = () => {
         return payments.filter(p => p.status === 'pending').reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
     };
 
+    const handlePayment = (payment) => {
+        // Logique de paiement
+        console.log('Paiement pour:', payment);
+        alert(`Fonctionnalité de paiement pour ${payment.type} #${payment.id} - À implémenter`);
+    };
+
+    const handleDownload = (payment) => {
+        // Logique de téléchargement
+        console.log('Téléchargement de:', payment);
+        alert(`Téléchargement de ${payment.type} #${payment.id} - À implémenter`);
+    };
+
     if (loading) {
         return (
-            <div className="patient-container">
-                <div className="loading-container">
+            <div className="glass-container">
+                <div className="loading-spinner">
                     <div className="spinner"></div>
                     <p>Chargement des paiements...</p>
                 </div>
@@ -60,22 +73,25 @@ const Payments = () => {
     }
 
     return (
-        <div className="patient-container">
-            <header className="patient-header">
+        <div className="glass-container">
+            <header className="page-header">
                 <h1>💳 Paiements</h1>
                 <p className="header-subtitle">Gérez vos factures et paiements</p>
             </header>
 
-            <div className="payments-summary">
-                <div className="summary-card paid">
+            <div className="summary-cards">
+                <div className="glass-card summary-card paid">
+                    <div className="summary-icon">✅</div>
                     <div className="summary-amount">{getTotalPaid()} DH</div>
                     <div className="summary-label">Payés</div>
                 </div>
-                <div className="summary-card pending">
+                <div className="glass-card summary-card pending">
+                    <div className="summary-icon">⏳</div>
                     <div className="summary-amount">{getTotalPending()} DH</div>
                     <div className="summary-label">En attente</div>
                 </div>
-                <div className="summary-card total">
+                <div className="glass-card summary-card total">
+                    <div className="summary-icon">💰</div>
                     <div className="summary-amount">{getTotalPaid() + getTotalPending()} DH</div>
                     <div className="summary-label">Total</div>
                 </div>
@@ -83,19 +99,19 @@ const Payments = () => {
 
             <div className="payments-list">
                 {payments.length === 0 ? (
-                    <div className="no-data">
-                        <div className="no-data-icon">💳</div>
+                    <div className="empty-state">
+                        <div className="empty-icon">💳</div>
                         <h3>Aucun paiement</h3>
                         <p>Vous n'avez pas encore de factures ou paiements</p>
                     </div>
                 ) : (
                     payments.map((payment) => (
-                        <div key={payment.id} className="payment-item">
+                        <div key={payment.id} className="glass-card payment-item">
                             <div className="payment-header">
                                 <div className="payment-info">
                                     <h3>{getTypeLabel(payment.type)} #{payment.id}</h3>
                                     <div className="payment-date">
-                                        {new Date(payment.created_at).toLocaleDateString('fr-FR', { 
+                                        📅 {new Date(payment.created_at).toLocaleDateString('fr-FR', { 
                                             day: 'numeric', 
                                             month: 'long', 
                                             year: 'numeric' 
@@ -123,22 +139,28 @@ const Payments = () => {
                                     <div className="detail-row">
                                         <span className="detail-label">Échéance:</span>
                                         <span className="detail-value">
-                                            {new Date(payment.due_date).toLocaleDateString('fr-FR')}
+                                            📅 {new Date(payment.due_date).toLocaleDateString('fr-FR')}
                                         </span>
                                     </div>
                                 )}
                             </div>
                             <div className="payment-actions">
-                                <button className="btn-secondary">
+                                <button className="glass-button small secondary">
                                     📄 Voir détail
                                 </button>
                                 {payment.status === 'pending' && (
-                                    <button className="btn-dental">
+                                    <button 
+                                        className="glass-button small primary"
+                                        onClick={() => handlePayment(payment)}
+                                    >
                                         💳 Payer maintenant
                                     </button>
                                 )}
                                 {payment.status === 'paid' && (
-                                    <button className="btn-success">
+                                    <button 
+                                        className="glass-button small success"
+                                        onClick={() => handleDownload(payment)}
+                                    >
                                         📥 Télécharger
                                     </button>
                                 )}

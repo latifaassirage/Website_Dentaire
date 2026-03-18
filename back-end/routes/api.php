@@ -14,6 +14,11 @@ use App\Http\Controllers\Api\MessageController;
 
 // Apply CORS middleware to all routes
 Route::middleware(['cors', 'api'])->group(function () {
+    // Public routes
+    Route::get('/csrf-token', function () {
+        return response()->json(['csrfToken' => csrf_token()]);
+    });
+
     // Authentication Routes
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class, 'register']);
@@ -71,7 +76,32 @@ Route::middleware(['cors', 'api'])->group(function () {
     // Patient Routes (require authentication)
     Route::middleware(['auth:api'])->prefix('patient')->group(function () {
         Route::get('/dossier/{id}', [PatientController::class, 'getDossier']);
-        Route::get('/appointments/{id}', [PatientController::class, 'getMyAppointments']);
+        
+        // Appointments
+        Route::get('/appointments', [AppointmentController::class, 'index']);
+        Route::post('/appointments', [AppointmentController::class, 'store']);
+        Route::put('/appointments/{appointment}', [AppointmentController::class, 'update']);
+        Route::delete('/appointments/{appointment}', [AppointmentController::class, 'destroy']);
+        Route::post('/appointments/{appointment}/cancel', [AppointmentController::class, 'cancel']);
+        
+        // Messages
+        Route::get('/messages', [MessageController::class, 'index']);
+        Route::post('/messages', [MessageController::class, 'store']);
+        Route::put('/messages/{message}/read', [MessageController::class, 'markAsRead']);
+        Route::get('/messages/unread-count', [MessageController::class, 'getUnreadCount']);
+        Route::get('/messages/system', [MessageController::class, 'getSystemMessages']);
+        
+        // Documents
+        Route::get('/documents', [DocumentController::class, 'index']);
+        Route::get('/documents/{document}/download', [DocumentController::class, 'download']);
+        
+        // Payments
+        Route::get('/payments', [PaymentController::class, 'index']);
+        Route::post('/payments/{payment}/pay', [PaymentController::class, 'processPayment']);
+        
+        // Profile
+        Route::get('/profile', [UserController::class, 'getProfile']);
+        Route::put('/profile', [UserController::class, 'updateProfile']);
     });
 
     // User Routes (require authentication)

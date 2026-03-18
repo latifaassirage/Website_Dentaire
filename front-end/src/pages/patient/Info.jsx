@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { dashboardAPI, userAPI } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
-import './PatientDashboard.css';
+import './Info.css';
 
 const Info = () => {
     const [info, setInfo] = useState({});
@@ -69,8 +69,8 @@ const Info = () => {
 
     if (loading) {
         return (
-            <div className="patient-container">
-                <div className="loading-container">
+            <div className="glass-container">
+                <div className="loading-spinner">
                     <div className="spinner"></div>
                     <p>Chargement des informations...</p>
                 </div>
@@ -79,68 +79,76 @@ const Info = () => {
     }
 
     return (
-        <div className="patient-container">
-            <header className="patient-header">
+        <div className="glass-container">
+            <header className="page-header">
                 <h1>ℹ️ Informations du compte</h1>
                 <button 
-                    className="btn-edit" 
+                    className="glass-button primary"
                     onClick={() => setIsEditing(!isEditing)}
                 >
-                    {isEditing ? 'Annuler' : 'Modifier'}
+                    {isEditing ? '❌ Annuler' : '✏️ Modifier'}
                 </button>
             </header>
 
             {isEditing ? (
-                <form className="edit-form" onSubmit={handleSubmit}>
-                    <div className="form-section">
-                        <h3>Informations personnelles</h3>
-                        <div className="form-group">
-                            <label>Nom complet:</label>
-                            <input 
-                                type="text" 
-                                value={formData.name}
-                                onChange={(e) => setFormData({...formData, name: e.target.value})}
-                                required
-                            />
+                <div className="glass-card edit-form-container">
+                    <form className="edit-form" onSubmit={handleSubmit}>
+                        <h3>👤 Modifier mes informations</h3>
+                        <div className="form-grid">
+                            <div className="form-group">
+                                <label>Nom complet:</label>
+                                <input 
+                                    type="text" 
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                    required
+                                    className="glass-input"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Email:</label>
+                                <input 
+                                    type="email" 
+                                    value={formData.email}
+                                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                                    required
+                                    className="glass-input"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Téléphone:</label>
+                                <input 
+                                    type="tel" 
+                                    value={formData.phone}
+                                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                                    required
+                                    className="glass-input"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Nouveau mot de passe:</label>
+                                <input 
+                                    type="password" 
+                                    value={formData.password}
+                                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                                    placeholder="Laisser vide pour ne pas changer"
+                                    className="glass-input"
+                                />
+                            </div>
                         </div>
-                        <div className="form-group">
-                            <label>Email:</label>
-                            <input 
-                                type="email" 
-                                value={formData.email}
-                                onChange={(e) => setFormData({...formData, email: e.target.value})}
-                                required
-                            />
+                        <div className="form-actions">
+                            <button type="submit" className="glass-button primary">
+                                💾 Sauvegarder
+                            </button>
+                            <button type="button" className="glass-button secondary" onClick={() => setIsEditing(false)}>
+                                ❌ Annuler
+                            </button>
                         </div>
-                        <div className="form-group">
-                            <label>Téléphone:</label>
-                            <input 
-                                type="tel" 
-                                value={formData.phone}
-                                onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                                required
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>Nouveau mot de passe:</label>
-                            <input 
-                                type="password" 
-                                value={formData.password}
-                                onChange={(e) => setFormData({...formData, password: e.target.value})}
-                                placeholder="Laisser vide pour ne pas changer"
-                            />
-                        </div>
-                    </div>
-                    <div className="form-actions">
-                        <button type="submit" className="btn-save">💾 Sauvegarder</button>
-                        <button type="button" className="btn-cancel" onClick={() => setIsEditing(false)}>
-                            ❌ Annuler
-                        </button>
-                    </div>
-                </form>
+                    </form>
+                </div>
             ) : (
                 <div className="info-sections">
-                    <div className="info-section">
+                    <div className="glass-card info-section">
                         <h3>👤 Informations personnelles</h3>
                         <div className="info-grid">
                             <div className="info-item">
@@ -162,7 +170,7 @@ const Info = () => {
                         </div>
                     </div>
 
-                    <div className="info-section">
+                    <div className="glass-card info-section">
                         <h3>🏥 Informations médicales</h3>
                         <div className="info-grid">
                             <div className="info-item">
@@ -199,13 +207,13 @@ const Info = () => {
                             </div>
                         </div>
                         <div className="medical-actions">
-                            <button className="btn-secondary" onClick={handleMedicalInfoUpdate}>
+                            <button className="glass-button secondary" onClick={handleMedicalInfoUpdate}>
                                 📝 Mettre à jour les infos médicales
                             </button>
                         </div>
                     </div>
 
-                    <div className="info-section">
+                    <div className="glass-card info-section">
                         <h3>⚙️ Préférences</h3>
                         <div className="info-grid">
                             <div className="info-item">
